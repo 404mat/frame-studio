@@ -1,5 +1,4 @@
-import { useRef } from 'react'
-import { Button } from '@/components/ui/button'
+import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -16,42 +15,30 @@ import {
   FieldTitle,
 } from '@/components/ui/field'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Upload } from 'lucide-react'
+import { Slider } from '@/components/ui/slider'
 import { FrameSettings, Preset } from '@/routes/index'
 
 interface FrameControlsProps {
-  imageFile: File | null
-  onImageUpload: (file: File) => void
   frameSettings: FrameSettings
   onFrameSettingsChange: (settings: FrameSettings) => void
   presets: Preset[]
   onPresetSelect: (preset: Preset) => void
   selectedPreset: string
-  canvasRef: React.RefObject<HTMLCanvasElement>
 }
 
 export function FrameControls({
-  imageFile,
-  onImageUpload,
   frameSettings,
   onFrameSettingsChange,
   presets,
   onPresetSelect,
   selectedPreset,
-  canvasRef,
 }: FrameControlsProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [sliderValue, setSliderValue] = useState<number[]>([frameSettings.frameWidth])
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file && file.type.startsWith('image/')) {
-      onImageUpload(file)
-    }
-  }
-
-  const handleUploadClick = () => {
-    fileInputRef.current?.click()
-  }
+  // Sync slider value when frameSettings changes (e.g., from preset)
+  useEffect(() => {
+    setSliderValue([frameSettings.frameWidth])
+  }, [frameSettings.frameWidth])
 
   const updateSetting = <K extends keyof FrameSettings>(
     key: K,
@@ -63,74 +50,30 @@ export function FrameControls({
     })
   }
 
-  const handlePresetChange = (presetName: string) => {
+  const handlePresetChange = (presetName: string | null) => {
+    if (!presetName) return
     const preset = presets.find((p) => p.name === presetName)
     if (preset) {
       onPresetSelect(preset)
     }
   }
 
-  const handleExport = () => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-
-    canvas.toBlob((blob) => {
-      if (!blob) return
-
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `polaroid-frame-${Date.now()}.png`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      URL.revokeObjectURL(url)
-    }, 'image/png')
-  }
-
   return (
     <div className="space-y-6">
-      {/* Image Upload */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Image</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="hidden"
-          />
-          <Button
-            onClick={handleUploadClick}
-            variant="outline"
-            className="w-full"
-          >
-            <Upload className="size-4" />
-            {imageFile ? 'Change Image' : 'Upload Image'}
-          </Button>
-          {imageFile && (
-            <p className="text-xs text-muted-foreground mt-2">
-              {imageFile.name}
-            </p>
-          )}
-        </CardContent>
-      </Card>
-
       {/* Presets */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Presets</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <Field orientation="horizontal" className="items-center">
+        <FieldLabel className="min-w-fit">
+          <FieldTitle>Presets</FieldTitle>
+        </FieldLabel>
+        <FieldContent className="flex-1">
           <Select
-            value={selectedPreset}
+            value={selectedPreset || null}
             onValueChange={handlePresetChange}
           >
-            <SelectTrigger>
-              <SelectValue placeholder="Select a preset" />
+            <SelectTrigger className="w-full">
+              <SelectValue>
+                {selectedPreset || 'No preset selected'}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {presets.map((preset) => (
@@ -140,8 +83,8 @@ export function FrameControls({
               ))}
             </SelectContent>
           </Select>
-        </CardContent>
-      </Card>
+        </FieldContent>
+      </Field>
 
       {/* Frame Settings */}
       <Card>
@@ -153,18 +96,30 @@ export function FrameControls({
             {/* Frame Width */}
             <Field>
               <FieldLabel>
-                <FieldTitle>Frame Width (px)</FieldTitle>
+                <FieldTitle>Frame Width ({Math.round(sliderValue[0] ?? frameSettings.frameWidth)}%)</FieldTitle>
               </FieldLabel>
-              <FieldContent>
-                <Input
-                  type="number"
-                  min="0"
-                  max="200"
-                  value={frameSettings.frameWidth}
-                  onChange={(e) =>
-                    updateSetting('frameWidth', parseInt(e.target.value) || 0)
-                  }
-                />
+              <FieldContent className="w-full">
+                <div className="space-y-2 w-full">
+                  <div className="w-full">
+                    <Slider
+                      value={sliderValue}
+                      onValueChange={(value) => {
+                        // base-ui passes array directly when value is array
+                        const newValues = Array.isArray(value) ? value : [value]
+                        const roundedValue = Math.round(newValues[0] ?? 0)
+                        setSliderValue([roundedValue])
+                        updateSetting('frameWidth', roundedValue)
+                      }}
+                      min={0}
+                      max={50}
+                      step={1}
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-muted-foreground px-1">
+                    <span>0%</span>
+                    <span>50%</span>
+                  </div>
+                </div>
               </FieldContent>
             </Field>
 
@@ -230,38 +185,7 @@ export function FrameControls({
                 </div>
               </FieldContent>
             </Field>
-
-            {/* Text Size */}
-            <Field>
-              <FieldLabel>
-                <FieldTitle>Text Size (px)</FieldTitle>
-              </FieldLabel>
-              <FieldContent>
-                <Input
-                  type="number"
-                  min="8"
-                  max="72"
-                  value={frameSettings.textSize}
-                  onChange={(e) =>
-                    updateSetting('textSize', parseInt(e.target.value) || 24)
-                  }
-                />
-              </FieldContent>
-            </Field>
           </FieldGroup>
-        </CardContent>
-      </Card>
-
-      {/* Export */}
-      <Card>
-        <CardContent className="pt-6">
-          <Button
-            onClick={handleExport}
-            disabled={!imageFile}
-            className="w-full"
-          >
-            Export Image
-          </Button>
         </CardContent>
       </Card>
     </div>

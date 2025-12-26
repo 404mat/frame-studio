@@ -2,58 +2,58 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState, useRef, useEffect } from 'react'
 import { FrameCanvas } from '@/components/FrameCanvas'
 import { FrameControls } from '@/components/FrameControls'
+import { Button } from '@/components/ui/button'
+import { Upload } from 'lucide-react'
 
 export const Route = createFileRoute('/')({ component: App })
 
 export type FrameSettings = {
-  frameWidth: number
+  frameWidth: number // percentage of image size (0-100)
   frameColor: string
   bottomText: string
   textColor: string
-  textSize: number
 }
 
 export type Preset = {
   name: string
-  frameWidth: number
+  frameWidth: number // percentage
   frameColor: string
   bottomText: string
   textColor: string
 }
 
 const DEFAULT_SETTINGS: FrameSettings = {
-  frameWidth: 40,
+  frameWidth: 8, // 8% of image size
   frameColor: '#ffffff',
   bottomText: '',
   textColor: '#000000',
-  textSize: 24,
 }
 
 const PRESETS: Preset[] = [
   {
     name: 'Classic White',
-    frameWidth: 40,
+    frameWidth: 8,
     frameColor: '#ffffff',
     bottomText: '',
     textColor: '#000000',
   },
   {
     name: 'Vintage Brown',
-    frameWidth: 50,
+    frameWidth: 10,
     frameColor: '#8B6F47',
     bottomText: '',
     textColor: '#ffffff',
   },
   {
     name: 'Black & White',
-    frameWidth: 45,
+    frameWidth: 9,
     frameColor: '#000000',
     bottomText: '',
     textColor: '#ffffff',
   },
   {
     name: 'Colorful',
-    frameWidth: 35,
+    frameWidth: 7,
     frameColor: '#FF6B9D',
     bottomText: '',
     textColor: '#ffffff',
@@ -77,10 +77,7 @@ function App() {
   // Handle preset selection
   const handlePresetSelect = (preset: Preset) => {
     setSelectedPreset(preset.name)
-    setFrameSettings({
-      ...preset,
-      textSize: DEFAULT_SETTINGS.textSize,
-    })
+    setFrameSettings(preset)
   }
 
   // Handle manual settings change - clear preset selection
@@ -98,23 +95,75 @@ function App() {
     }
   }, [imageUrl])
 
+  const handleExport = () => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    canvas.toBlob((blob) => {
+      if (!blob) return
+
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `polaroid-frame-${Date.now()}.png`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+    }, 'image/png')
+  }
+
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file && file.type.startsWith('image/')) {
+      handleImageUpload(file)
+    }
+  }
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click()
+  }
+
   return (
     <div className="h-screen flex flex-col overflow-hidden">
-      <header className="border-b px-6 py-4">
+      <header className="border-b px-6 py-4 flex items-center justify-between">
         <h1 className="text-xl font-medium">Polaroid Frame Studio</h1>
+        <div className="flex items-center gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+          <Button
+            onClick={handleUploadClick}
+            variant="outline"
+            size="sm"
+          >
+            <Upload className="size-4" />
+            {imageFile ? 'Change Image' : 'Upload Image'}
+          </Button>
+          <Button
+            onClick={handleExport}
+            disabled={!imageFile}
+            size="sm"
+          >
+            Export
+          </Button>
+        </div>
       </header>
       <div className="flex-1 flex overflow-hidden">
         {/* Left Column: Controls */}
         <div className="w-80 border-r overflow-y-auto p-6">
           <FrameControls
-            imageFile={imageFile}
-            onImageUpload={handleImageUpload}
             frameSettings={frameSettings}
             onFrameSettingsChange={handleFrameSettingsChange}
             presets={PRESETS}
             onPresetSelect={handlePresetSelect}
             selectedPreset={selectedPreset}
-            canvasRef={canvasRef}
           />
         </div>
         {/* Right Column: Canvas Preview */}

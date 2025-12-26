@@ -19,17 +19,27 @@ export const FrameCanvas = forwardRef<HTMLCanvasElement, FrameCanvasProps>(
       img.crossOrigin = 'anonymous'
 
       img.onload = () => {
-        const { frameWidth, frameColor, bottomText, textColor, textSize } = frameSettings
+        const { frameWidth, frameColor, bottomText, textColor } = frameSettings
 
         // Calculate dimensions
         const imageWidth = img.width
         const imageHeight = img.height
+        
+        // Calculate frame width in pixels from percentage
+        // Use average of width and height to maintain consistent frame size
+        const avgImageSize = (imageWidth + imageHeight) / 2
+        const frameWidthPx = (avgImageSize * frameWidth) / 100
+        
+        // Auto-calculate text size based on frame width (scale proportionally)
+        // Base text size is about 30% of frame width, with min/max bounds
+        const textSize = Math.max(12, Math.min(72, frameWidthPx * 0.3))
+        
         // Add extra space at bottom for text if text is provided
-        const textAreaHeight = bottomText ? frameWidth : 0
+        const textAreaHeight = bottomText ? frameWidthPx : 0
 
         // Canvas dimensions: image + frame on all sides + extra text area at bottom
-        const canvasWidth = imageWidth + frameWidth * 2
-        const canvasHeight = imageHeight + frameWidth * 2 + textAreaHeight
+        const canvasWidth = imageWidth + frameWidthPx * 2
+        const canvasHeight = imageHeight + frameWidthPx * 2 + textAreaHeight
 
         // Set canvas size
         canvas.width = canvasWidth
@@ -43,8 +53,8 @@ export const FrameCanvas = forwardRef<HTMLCanvasElement, FrameCanvasProps>(
         ctx.fillRect(0, 0, canvasWidth, canvasHeight)
 
         // Draw image in center
-        const imageX = frameWidth
-        const imageY = frameWidth
+        const imageX = frameWidthPx
+        const imageY = frameWidthPx
         ctx.drawImage(img, imageX, imageY, imageWidth, imageHeight)
 
         // Draw bottom text if provided
