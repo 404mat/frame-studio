@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/field'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Slider } from '@/components/ui/slider'
+import { Button } from '@/components/ui/button'
 import { FrameSettings, Preset } from '@/routes/index'
 
 interface FrameControlsProps {
@@ -129,24 +130,65 @@ export function FrameControls({
                 <FieldTitle>Frame Color</FieldTitle>
               </FieldLabel>
               <FieldContent>
-                <div className="flex gap-2 items-center">
-                  <Input
-                    type="color"
-                    value={frameSettings.frameColor}
-                    onChange={(e) => updateSetting('frameColor', e.target.value)}
-                    className="w-20 h-8 p-1 cursor-pointer"
-                  />
-                  <Input
-                    type="text"
-                    value={frameSettings.frameColor}
-                    onChange={(e) => updateSetting('frameColor', e.target.value)}
-                    className="flex-1"
-                    placeholder="#ffffff"
-                  />
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant={frameSettings.frameColor === '#000000' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => updateSetting('frameColor', '#000000')}
+                      className="flex-1"
+                    >
+                      Black
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={frameSettings.frameColor === '#ffffff' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => updateSetting('frameColor', '#ffffff')}
+                      className="flex-1"
+                    >
+                      White
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={frameSettings.frameColor === '#808080' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => updateSetting('frameColor', '#808080')}
+                      className="flex-1"
+                    >
+                      Gray
+                    </Button>
+                  </div>
+                  <div className="flex gap-2 items-center">
+                    <Input
+                      type="color"
+                      value={frameSettings.frameColor}
+                      onChange={(e) => updateSetting('frameColor', e.target.value)}
+                      className="w-20 h-8 p-1 cursor-pointer"
+                    />
+                    <Input
+                      type="text"
+                      value={frameSettings.frameColor}
+                      onChange={(e) => updateSetting('frameColor', e.target.value)}
+                      className="flex-1"
+                      placeholder="#ffffff"
+                    />
+                  </div>
                 </div>
               </FieldContent>
             </Field>
+          </FieldGroup>
+        </CardContent>
+      </Card>
 
+      {/* Text Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Text Settings</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <FieldGroup>
             {/* Bottom Text */}
             <Field>
               <FieldLabel>
