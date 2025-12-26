@@ -3,7 +3,13 @@ import { useState, useRef, useEffect } from 'react'
 import { FrameCanvas } from '@/components/FrameCanvas'
 import { FrameControls } from '@/components/FrameControls'
 import { Button } from '@/components/ui/button'
-import { Upload } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Upload, Settings } from 'lucide-react'
 
 export const Route = createFileRoute('/')({ component: App })
 
@@ -60,11 +66,16 @@ const PRESETS: Preset[] = [
   },
 ]
 
+type CanvasBackground = 'white' | 'grey' | 'black'
+
 function App() {
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imageUrl, setImageUrl] = useState<string | null>(null)
-  const [frameSettings, setFrameSettings] = useState<FrameSettings>(DEFAULT_SETTINGS)
+  const [frameSettings, setFrameSettings] =
+    useState<FrameSettings>(DEFAULT_SETTINGS)
   const [selectedPreset, setSelectedPreset] = useState<string>('')
+  const [canvasBackground, setCanvasBackground] =
+    useState<CanvasBackground>('grey')
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   // Handle image upload
@@ -129,7 +140,7 @@ function App() {
   return (
     <div className="h-screen flex flex-col overflow-hidden">
       <header className="border-b px-6 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-medium">Polaroid Frame Studio</h1>
+        <h1 className="text-xl font-medium">Frame Studio</h1>
         <div className="flex items-center gap-2">
           <input
             ref={fileInputRef}
@@ -138,19 +149,38 @@ function App() {
             onChange={handleFileChange}
             className="hidden"
           />
-          <Button
-            onClick={handleUploadClick}
-            variant="outline"
-            size="sm"
-          >
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              <Button variant="outline" size="sm">
+                <Settings className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => setCanvasBackground('white')}
+                data-selected={canvasBackground === 'white'}
+              >
+                White
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setCanvasBackground('grey')}
+                data-selected={canvasBackground === 'grey'}
+              >
+                Grey
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setCanvasBackground('black')}
+                data-selected={canvasBackground === 'black'}
+              >
+                Black
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button onClick={handleUploadClick} variant="outline" size="sm">
             <Upload className="size-4" />
             {imageFile ? 'Change Image' : 'Upload Image'}
           </Button>
-          <Button
-            onClick={handleExport}
-            disabled={!imageFile}
-            size="sm"
-          >
+          <Button onClick={handleExport} disabled={!imageFile} size="sm">
             Export
           </Button>
         </div>
@@ -167,7 +197,15 @@ function App() {
           />
         </div>
         {/* Right Column: Canvas Preview */}
-        <div className="flex-1 flex items-center justify-center p-6 bg-muted/30 overflow-auto">
+        <div
+          className={`flex-1 flex items-center justify-center p-6 overflow-auto ${
+            canvasBackground === 'white'
+              ? 'bg-white'
+              : canvasBackground === 'black'
+                ? 'bg-black'
+                : 'bg-muted/30'
+          }`}
+        >
           <FrameCanvas
             ref={canvasRef}
             imageUrl={imageUrl}
