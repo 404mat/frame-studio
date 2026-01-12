@@ -135,22 +135,21 @@ export const FrameCanvas = forwardRef<HTMLCanvasElement, FrameCanvasProps>(
             // Draw image in center (accounting for individual frame widths)
             ctx.drawImage(img, imageX, imageY, imageWidth, imageHeight);
 
-            // Calculate logo size - make it proportional to the bottom border height
-            // Use about 60% of the bottom border height for the logo
-            const logoHeight = bottomPx * 0.6;
+            // Calculate logo size - use ~22% of bottom border height for main row
+            const logoHeight = bottomPx * 0.22;
             const logoAspectRatio = logoImg.width / logoImg.height;
             const logoWidth = logoHeight * logoAspectRatio;
 
             // Set up text styling for "Shot on" text
-            // Make text size proportional to logo height for better visibility
-            const shotOnTextSize = Math.max(16, Math.min(60, logoHeight * 0.4));
+            // Use ~1.3x multiplier to make text cap-height match logo height
+            const shotOnTextSize = logoHeight * 1.3;
             ctx.font = `${shotOnTextSize}px sans-serif`;
             ctx.fillStyle = textColor;
-            ctx.textBaseline = 'bottom'; // Use 'bottom' to align with logo bottom
+            ctx.textBaseline = 'alphabetic';
             ctx.textAlign = 'left';
 
-            // Calculate spacing between text and logo
-            const spacing = bottomPx * 0.1;
+            // Calculate spacing between elements
+            const spacing = logoHeight * 0.4;
 
             let totalWidth = 0;
             let textWidth = 0;
@@ -166,41 +165,43 @@ export const FrameCanvas = forwardRef<HTMLCanvasElement, FrameCanvasProps>(
             // Calculate starting X position to center the group
             const groupStartX = (canvasWidth - totalWidth) / 2;
 
-            // Calculate bottom alignment Y position - position in lower portion of bottom border
-            // Position it at about 80% down from the top of the bottom border
+            // Position near the top of the bottom border with padding
+            // Use 15% from top as the starting point for the main row
             const bottomBorderTop = canvasHeight - bottomPx;
-            const bottomAlignY = bottomBorderTop + bottomPx * 0.8;
+            const mainRowTopY = bottomBorderTop + bottomPx * 0.15;
+
+            // Calculate baseline for text to align with logo bottom
+            const mainRowBottomY = mainRowTopY + logoHeight;
 
             // Draw "Shot on" text if enabled
             if (showShotOnText ?? false) {
-              // Ensure text is visible by setting fill style again
               ctx.fillStyle = textColor;
-              ctx.fillText('Shot on', groupStartX, bottomAlignY);
+              ctx.fillText('Shot on', groupStartX, mainRowBottomY);
             }
 
             // Calculate logo position
             const logoX = showShotOnText
               ? groupStartX + textWidth + spacing
               : (canvasWidth - logoWidth) / 2;
-            // Position logo so its bottom edge aligns with text bottom
-            const logoY = bottomAlignY - logoHeight;
+            const logoY = mainRowTopY;
 
             // Draw the logo
             ctx.drawImage(logoImg, logoX, logoY, logoWidth, logoHeight);
 
-            // Draw EXIF data if enabled
+            // Draw EXIF data if enabled (as second row below main content)
             if (showExifData ?? false) {
               const exifString = formatExifString(exifData);
               if (exifString) {
-                // Use a smaller font size for EXIF text
-                const exifTextSize = Math.max(12, Math.min(40, logoHeight * 0.3));
+                // EXIF text is about 80% of logo height
+                const exifTextSize = logoHeight * 0.8;
                 ctx.font = `${exifTextSize}px sans-serif`;
                 ctx.fillStyle = textColor;
                 ctx.textBaseline = 'top';
                 ctx.textAlign = 'center';
 
-                // Position EXIF text below the logo with some spacing
-                const exifY = bottomAlignY + bottomPx * 0.05;
+                // Position EXIF text below the main row with some spacing
+                const exifRowSpacing = logoHeight * 0.3;
+                const exifY = mainRowBottomY + exifRowSpacing;
                 const exifX = canvasWidth / 2;
 
                 ctx.fillText(exifString, exifX, exifY);
