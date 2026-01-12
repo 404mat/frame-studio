@@ -426,6 +426,19 @@ export function FrameControls({
                 <FieldTitle>Show x100vi image on bottom border</FieldTitle>
               </FieldLabel>
             </Field>
+            <Field>
+              <FieldLabel className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={frameSettings.showShotOnText ?? false}
+                  onChange={(e) =>
+                    updateSetting('showShotOnText', e.target.checked)
+                  }
+                  className="size-4 cursor-pointer"
+                />
+                <FieldTitle>Display 'Shot on' text</FieldTitle>
+              </FieldLabel>
+            </Field>
           </FieldGroup>
         </CardContent>
       </Card>

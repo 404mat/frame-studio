@@ -16,9 +16,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 export type FrameSettings = {
   frameWidth: number; // percentage of image size (0-100)
   frameColor: string;
-  bottomText: string;
   textColor: string;
   textEnabled?: boolean; // whether to show x100vi image on bottom border
+  showShotOnText?: boolean; // whether to show "Shot on" text before logo
   // Individual side widths (optional, overrides frameWidth when set)
   frameWidths?: {
     top: number;
@@ -32,16 +32,15 @@ export type Preset = {
   name: string;
   frameWidth: number; // percentage
   frameColor: string;
-  bottomText: string;
   textColor: string;
 };
 
 const DEFAULT_SETTINGS: FrameSettings = {
   frameWidth: 8, // 8% of image size
   frameColor: '#ffffff',
-  bottomText: '',
   textColor: '#000000',
   textEnabled: false,
+  showShotOnText: false,
 };
 
 const PRESETS: Preset[] = [
@@ -49,28 +48,24 @@ const PRESETS: Preset[] = [
     name: 'Classic White',
     frameWidth: 8,
     frameColor: '#ffffff',
-    bottomText: '',
     textColor: '#000000',
   },
   {
     name: 'Vintage Brown',
     frameWidth: 10,
     frameColor: '#8B6F47',
-    bottomText: '',
     textColor: '#ffffff',
   },
   {
     name: 'Black & White',
     frameWidth: 9,
     frameColor: '#000000',
-    bottomText: '',
     textColor: '#ffffff',
   },
   {
     name: 'Colorful',
     frameWidth: 7,
     frameColor: '#FF6B9D',
-    bottomText: '',
     textColor: '#ffffff',
   },
 ];

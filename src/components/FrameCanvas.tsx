@@ -22,10 +22,10 @@ export const FrameCanvas = forwardRef<HTMLCanvasElement, FrameCanvasProps>(
         const {
           frameWidth,
           frameColor,
-          bottomText,
           textColor,
           frameWidths,
           textEnabled,
+          showShotOnText,
         } = frameSettings;
 
         // Calculate dimensions
@@ -53,17 +53,9 @@ export const FrameCanvas = forwardRef<HTMLCanvasElement, FrameCanvasProps>(
           topPx = rightPx = bottomPx = leftPx = frameWidthPx;
         }
 
-        // Auto-calculate text size based on average frame width (scale proportionally)
-        // Base text size is about 30% of frame width, with min/max bounds
-        const avgFrameWidth = (topPx + rightPx + bottomPx + leftPx) / 4;
-        const textSize = Math.max(12, Math.min(72, avgFrameWidth * 0.3));
-
-        // Add extra space at bottom for text if text is provided
-        const textAreaHeight = bottomText ? bottomPx : 0;
-
-        // Canvas dimensions: image + frame on all sides + extra text area at bottom
+        // Canvas dimensions: image + frame on all sides
         const canvasWidth = imageWidth + leftPx + rightPx;
-        const canvasHeight = imageHeight + topPx + bottomPx + textAreaHeight;
+        const canvasHeight = imageHeight + topPx + bottomPx;
 
         // Set canvas size
         canvas.width = canvasWidth;
@@ -81,17 +73,6 @@ export const FrameCanvas = forwardRef<HTMLCanvasElement, FrameCanvasProps>(
         const imageY = topPx;
         ctx.drawImage(img, imageX, imageY, imageWidth, imageHeight);
 
-        // Draw bottom text if provided
-        if (bottomText) {
-          // Center text vertically in the bottom text area
-          const textY = canvasHeight - textAreaHeight / 2;
-          ctx.fillStyle = textColor;
-          ctx.font = `${textSize}px sans-serif`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(bottomText, canvasWidth / 2, textY);
-        }
-
         // Draw x100vi image on bottom border if text is enabled
         if (textEnabled ?? false) {
           const logoImg = new Image();
@@ -108,26 +89,55 @@ export const FrameCanvas = forwardRef<HTMLCanvasElement, FrameCanvasProps>(
             // Draw image in center (accounting for individual frame widths)
             ctx.drawImage(img, imageX, imageY, imageWidth, imageHeight);
 
-            // Draw bottom text if provided
-            if (bottomText) {
-              // Center text vertically in the bottom text area
-              const textY = canvasHeight - textAreaHeight / 2;
-              ctx.fillStyle = textColor;
-              ctx.font = `${textSize}px sans-serif`;
-              ctx.textAlign = 'center';
-              ctx.textBaseline = 'middle';
-              ctx.fillText(bottomText, canvasWidth / 2, textY);
-            }
-
             // Calculate logo size - make it proportional to the bottom border height
             // Use about 60% of the bottom border height for the logo
             const logoHeight = bottomPx * 0.6;
             const logoAspectRatio = logoImg.width / logoImg.height;
             const logoWidth = logoHeight * logoAspectRatio;
 
-            // Center the logo horizontally on the bottom border
-            const logoX = (canvasWidth - logoWidth) / 2;
-            const logoY = canvasHeight - bottomPx + (bottomPx - logoHeight) / 2;
+            // Set up text styling for "Shot on" text
+            // Make text size proportional to logo height for better visibility
+            const shotOnTextSize = Math.max(16, Math.min(60, logoHeight * 0.4));
+            ctx.font = `${shotOnTextSize}px sans-serif`;
+            ctx.fillStyle = textColor;
+            ctx.textBaseline = 'bottom'; // Use 'bottom' to align with logo bottom
+            ctx.textAlign = 'left';
+
+            // Calculate spacing between text and logo
+            const spacing = bottomPx * 0.1;
+
+            let totalWidth = 0;
+            let textWidth = 0;
+
+            if (showShotOnText ?? false) {
+              // Measure "Shot on" text width
+              textWidth = ctx.measureText('Shot on').width;
+              totalWidth = textWidth + spacing + logoWidth;
+            } else {
+              totalWidth = logoWidth;
+            }
+
+            // Calculate starting X position to center the group
+            const groupStartX = (canvasWidth - totalWidth) / 2;
+
+            // Calculate bottom alignment Y position - position in lower portion of bottom border
+            // Position it at about 80% down from the top of the bottom border
+            const bottomBorderTop = canvasHeight - bottomPx;
+            const bottomAlignY = bottomBorderTop + bottomPx * 0.8;
+
+            // Draw "Shot on" text if enabled
+            if (showShotOnText ?? false) {
+              // Ensure text is visible by setting fill style again
+              ctx.fillStyle = textColor;
+              ctx.fillText('Shot on', groupStartX, bottomAlignY);
+            }
+
+            // Calculate logo position
+            const logoX = showShotOnText
+              ? groupStartX + textWidth + spacing
+              : (canvasWidth - logoWidth) / 2;
+            // Position logo so its bottom edge aligns with text bottom
+            const logoY = bottomAlignY - logoHeight;
 
             // Draw the logo
             ctx.drawImage(logoImg, logoX, logoY, logoWidth, logoHeight);
