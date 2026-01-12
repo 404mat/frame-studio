@@ -9,9 +9,20 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Upload, Settings } from 'lucide-react';
+import { Upload, Settings, RotateCcw } from 'lucide-react';
 import exifr from 'exifr';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 export type FrameSettings = {
   frameWidth: number; // percentage of image size (0-100)
@@ -90,6 +101,7 @@ function App() {
   const [canvasBackground, setCanvasBackground] =
     useState<CanvasBackground>('grey');
   const [exifData, setExifData] = useState<ExifData | null>(null);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // Handle image upload
@@ -141,6 +153,14 @@ function App() {
   const handleFrameSettingsChange = (settings: FrameSettings) => {
     setFrameSettings(settings);
     setSelectedPreset('');
+  };
+
+  // Handle reset to default settings
+  const handleReset = () => {
+    setFrameSettings(DEFAULT_SETTINGS);
+    setCanvasBackground('grey');
+    setSelectedPreset('');
+    setResetDialogOpen(false);
   };
 
   // Cleanup object URL on unmount
@@ -232,6 +252,29 @@ function App() {
       <div className="flex-1 flex overflow-hidden">
         {/* Left Column: Controls */}
         <div className="w-80 border-r overflow-y-auto p-6 space-y-6">
+          {/* Reset Button */}
+          <AlertDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
+            <AlertDialogTrigger className="w-full h-7 gap-1 rounded-none px-2.5 border border-border bg-background hover:bg-muted hover:text-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 text-xs font-medium transition-all disabled:pointer-events-none disabled:opacity-50 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-1 outline-none inline-flex items-center justify-center whitespace-nowrap">
+              <RotateCcw className="size-3.5 mr-2" />
+              Reset to Defaults
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Reset to Default Settings?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will reset all frame settings, text settings, and canvas
+                  background to their default values. This action cannot be
+                  undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleReset}>
+                  Reset
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           {/* EXIF Data Card */}
           <ExifCard exifData={exifData} />
           <FrameControls
