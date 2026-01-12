@@ -36,6 +36,7 @@ export type FrameSettings = {
   textColor: string;
   textEnabled?: boolean; // whether to show x100vi image on bottom border
   showShotOnText?: boolean; // whether to show "Shot on" text before logo
+  showExifData?: boolean; // whether to show EXIF data under the logo
   // Individual side widths (optional, overrides frameWidth when set)
   frameWidths?: {
     top: number;
@@ -58,6 +59,7 @@ const DEFAULT_SETTINGS: FrameSettings = {
   textColor: '#000000',
   textEnabled: false,
   showShotOnText: false,
+  showExifData: false,
 };
 
 const PRESETS: Preset[] = [
@@ -89,7 +91,7 @@ const PRESETS: Preset[] = [
 
 type CanvasBackground = 'white' | 'grey' | 'black';
 
-type ExifData = {
+export type ExifData = {
   make?: string;
   model?: string;
   focalLength?: number;
@@ -360,6 +362,7 @@ function App() {
             ref={canvasRef}
             imageUrl={imageUrl}
             frameSettings={frameSettings}
+            exifData={exifData}
           />
         </div>
       </div>

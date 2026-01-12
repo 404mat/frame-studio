@@ -1,13 +1,51 @@
 import { forwardRef, useEffect } from 'react';
-import { FrameSettings } from '@/routes/index';
+import { FrameSettings, ExifData } from '@/routes/index';
 
 interface FrameCanvasProps {
   imageUrl: string | null;
   frameSettings: FrameSettings;
+  exifData: ExifData | null;
 }
 
+// Helper functions to format EXIF data
+const formatFocalLength = (focalLength?: number) => {
+  if (!focalLength) return null;
+  return `${focalLength}mm`;
+};
+
+const formatShutterSpeed = (shutterSpeed?: number) => {
+  if (!shutterSpeed) return null;
+  if (shutterSpeed >= 1) {
+    return `${shutterSpeed}s`;
+  }
+  return `1/${Math.round(1 / shutterSpeed)}`;
+};
+
+const formatAperture = (aperture?: number) => {
+  if (!aperture) return null;
+  return `f/${aperture}`;
+};
+
+const formatISO = (iso?: number) => {
+  if (!iso) return null;
+  return `ISO${iso}`;
+};
+
+const formatExifString = (exifData: ExifData | null): string | null => {
+  if (!exifData) return null;
+
+  const parts = [
+    formatFocalLength(exifData.focalLength),
+    formatAperture(exifData.aperture),
+    formatShutterSpeed(exifData.shutterSpeed),
+    formatISO(exifData.iso),
+  ].filter(Boolean);
+
+  return parts.length > 0 ? parts.join('  ') : null;
+};
+
 export const FrameCanvas = forwardRef<HTMLCanvasElement, FrameCanvasProps>(
-  ({ imageUrl, frameSettings }, ref) => {
+  ({ imageUrl, frameSettings, exifData }, ref) => {
     useEffect(() => {
       const canvas = (ref as React.RefObject<HTMLCanvasElement>)?.current;
       if (!canvas) return;
@@ -33,6 +71,7 @@ export const FrameCanvas = forwardRef<HTMLCanvasElement, FrameCanvasProps>(
           frameWidths,
           textEnabled,
           showShotOnText,
+          showExifData,
         } = frameSettings;
 
         // Calculate dimensions
@@ -148,6 +187,25 @@ export const FrameCanvas = forwardRef<HTMLCanvasElement, FrameCanvasProps>(
 
             // Draw the logo
             ctx.drawImage(logoImg, logoX, logoY, logoWidth, logoHeight);
+
+            // Draw EXIF data if enabled
+            if (showExifData ?? false) {
+              const exifString = formatExifString(exifData);
+              if (exifString) {
+                // Use a smaller font size for EXIF text
+                const exifTextSize = Math.max(12, Math.min(40, logoHeight * 0.3));
+                ctx.font = `${exifTextSize}px sans-serif`;
+                ctx.fillStyle = textColor;
+                ctx.textBaseline = 'top';
+                ctx.textAlign = 'center';
+
+                // Position EXIF text below the logo with some spacing
+                const exifY = bottomAlignY + bottomPx * 0.05;
+                const exifX = canvasWidth / 2;
+
+                ctx.fillText(exifString, exifX, exifY);
+              }
+            }
           };
           logoImg.src = '/logos/fujifilm/x100vi.webp';
         }
@@ -158,7 +216,7 @@ export const FrameCanvas = forwardRef<HTMLCanvasElement, FrameCanvasProps>(
       return () => {
         // Cleanup if needed
       };
-    }, [imageUrl, frameSettings, ref]);
+    }, [imageUrl, frameSettings, exifData, ref]);
 
     return (
       <div className="flex flex-col items-center gap-4">

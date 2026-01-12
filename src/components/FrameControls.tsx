@@ -439,6 +439,19 @@ export function FrameControls({
                 <FieldTitle>Display 'Shot on' text</FieldTitle>
               </FieldLabel>
             </Field>
+            <Field>
+              <FieldLabel className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={frameSettings.showExifData ?? false}
+                  onChange={(e) =>
+                    updateSetting('showExifData', e.target.checked)
+                  }
+                  className="size-4 cursor-pointer"
+                />
+                <FieldTitle>Display EXIF data</FieldTitle>
+              </FieldLabel>
+            </Field>
           </FieldGroup>
         </CardContent>
       </Card>
