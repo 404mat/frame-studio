@@ -452,6 +452,51 @@ export function FrameControls({
                 <FieldTitle>Display EXIF data</FieldTitle>
               </FieldLabel>
             </Field>
+
+            {/* Text Color */}
+            <Field>
+              <FieldLabel>
+                <FieldTitle>Text Color</FieldTitle>
+              </FieldLabel>
+              <FieldContent>
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={frameSettings.contrastAwareText ?? true}
+                      onChange={(e) =>
+                        updateSetting('contrastAwareText', e.target.checked)
+                      }
+                      className="size-4 cursor-pointer"
+                    />
+                    <span className="text-sm">Auto contrast (white/black)</span>
+                  </label>
+                  <div
+                    className={`flex gap-2 items-center ${frameSettings.contrastAwareText ? 'opacity-40 pointer-events-none' : ''}`}
+                  >
+                    <Input
+                      type="color"
+                      value={frameSettings.textColor}
+                      onChange={(e) =>
+                        updateSetting('textColor', e.target.value)
+                      }
+                      disabled={frameSettings.contrastAwareText ?? true}
+                      className="w-20 h-8 p-1 cursor-pointer"
+                    />
+                    <Input
+                      type="text"
+                      value={frameSettings.textColor}
+                      onChange={(e) =>
+                        updateSetting('textColor', e.target.value)
+                      }
+                      disabled={frameSettings.contrastAwareText ?? true}
+                      className="flex-1"
+                      placeholder="#000000"
+                    />
+                  </div>
+                </div>
+              </FieldContent>
+            </Field>
           </FieldGroup>
         </CardContent>
       </Card>

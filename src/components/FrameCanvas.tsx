@@ -44,6 +44,28 @@ const formatExifString = (exifData: ExifData | null): string | null => {
   return parts.length > 0 ? parts.join('  ') : null;
 };
 
+// Calculate relative luminance of a hex color (for contrast calculation)
+const getLuminance = (hexColor: string): number => {
+  // Remove # if present
+  const hex = hexColor.replace('#', '');
+  const r = parseInt(hex.substring(0, 2), 16) / 255;
+  const g = parseInt(hex.substring(2, 4), 16) / 255;
+  const b = parseInt(hex.substring(4, 6), 16) / 255;
+
+  // Apply sRGB gamma correction
+  const toLinear = (c: number) =>
+    c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+
+  return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+};
+
+// Get contrast-aware text color (white or black) based on background
+const getContrastTextColor = (backgroundColor: string): string => {
+  const luminance = getLuminance(backgroundColor);
+  // Use white text on dark backgrounds, black text on light backgrounds
+  return luminance > 0.179 ? '#000000' : '#ffffff';
+};
+
 export const FrameCanvas = forwardRef<HTMLCanvasElement, FrameCanvasProps>(
   ({ imageUrl, frameSettings, exifData }, ref) => {
     useEffect(() => {
@@ -68,11 +90,17 @@ export const FrameCanvas = forwardRef<HTMLCanvasElement, FrameCanvasProps>(
           frameWidth,
           frameColor,
           textColor,
+          contrastAwareText,
           frameWidths,
           textEnabled,
           showShotOnText,
           showExifData,
         } = frameSettings;
+
+        // Determine the actual text color to use
+        const effectiveTextColor = contrastAwareText
+          ? getContrastTextColor(frameColor)
+          : textColor;
 
         // Calculate dimensions
         const imageWidth = img.width;
@@ -143,8 +171,8 @@ export const FrameCanvas = forwardRef<HTMLCanvasElement, FrameCanvasProps>(
             // Set up text styling for "Shot on" text
             // Use ~1.3x multiplier to make text cap-height match logo height
             const shotOnTextSize = logoHeight * 1.3;
-            ctx.font = `${shotOnTextSize}px sans-serif`;
-            ctx.fillStyle = textColor;
+            ctx.font = `300 ${shotOnTextSize}px sans-serif`;
+            ctx.fillStyle = effectiveTextColor;
             ctx.textBaseline = 'alphabetic';
             ctx.textAlign = 'left';
 
@@ -175,7 +203,7 @@ export const FrameCanvas = forwardRef<HTMLCanvasElement, FrameCanvasProps>(
 
             // Draw "Shot on" text if enabled
             if (showShotOnText ?? false) {
-              ctx.fillStyle = textColor;
+              ctx.fillStyle = effectiveTextColor;
               ctx.fillText('Shot on', groupStartX, mainRowBottomY);
             }
 
@@ -194,8 +222,8 @@ export const FrameCanvas = forwardRef<HTMLCanvasElement, FrameCanvasProps>(
               if (exifString) {
                 // EXIF text is about 80% of logo height
                 const exifTextSize = logoHeight * 0.8;
-                ctx.font = `${exifTextSize}px sans-serif`;
-                ctx.fillStyle = textColor;
+                ctx.font = `300 ${exifTextSize}px sans-serif`;
+                ctx.fillStyle = effectiveTextColor;
                 ctx.textBaseline = 'top';
                 ctx.textAlign = 'center';
 

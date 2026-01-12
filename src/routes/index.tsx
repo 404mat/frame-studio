@@ -34,6 +34,7 @@ export type FrameSettings = {
   frameWidth: number; // percentage of image size (0-100)
   frameColor: string;
   textColor: string;
+  contrastAwareText?: boolean; // auto-select white/black text based on background
   textEnabled?: boolean; // whether to show x100vi image on bottom border
   showShotOnText?: boolean; // whether to show "Shot on" text before logo
   showExifData?: boolean; // whether to show EXIF data under the logo
@@ -57,6 +58,7 @@ const DEFAULT_SETTINGS: FrameSettings = {
   frameWidth: 8, // 8% of image size
   frameColor: '#ffffff',
   textColor: '#000000',
+  contrastAwareText: true,
   textEnabled: false,
   showShotOnText: false,
   showExifData: false,
