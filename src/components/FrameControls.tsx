@@ -423,30 +423,44 @@ export function FrameControls({
                   }
                   className="size-4 cursor-pointer"
                 />
-                <FieldTitle>Show x100vi image on bottom border</FieldTitle>
+                <FieldTitle>Show bottom text info</FieldTitle>
               </FieldLabel>
             </Field>
             <Field>
-              <FieldLabel className="flex items-center gap-2 cursor-pointer">
+              <FieldLabel
+                className={`flex items-center gap-2 cursor-pointer ${
+                  !(frameSettings.textEnabled ?? false)
+                    ? 'opacity-50 pointer-events-none'
+                    : ''
+                }`}
+              >
                 <input
                   type="checkbox"
                   checked={frameSettings.showShotOnText ?? false}
                   onChange={(e) =>
                     updateSetting('showShotOnText', e.target.checked)
                   }
+                  disabled={!(frameSettings.textEnabled ?? false)}
                   className="size-4 cursor-pointer"
                 />
                 <FieldTitle>Display 'Shot on' text</FieldTitle>
               </FieldLabel>
             </Field>
             <Field>
-              <FieldLabel className="flex items-center gap-2 cursor-pointer">
+              <FieldLabel
+                className={`flex items-center gap-2 cursor-pointer ${
+                  !(frameSettings.textEnabled ?? false)
+                    ? 'opacity-50 pointer-events-none'
+                    : ''
+                }`}
+              >
                 <input
                   type="checkbox"
                   checked={frameSettings.showExifData ?? false}
                   onChange={(e) =>
                     updateSetting('showExifData', e.target.checked)
                   }
+                  disabled={!(frameSettings.textEnabled ?? false)}
                   className="size-4 cursor-pointer"
                 />
                 <FieldTitle>Display EXIF data</FieldTitle>
@@ -459,7 +473,13 @@ export function FrameControls({
                 <FieldTitle>Text Color</FieldTitle>
               </FieldLabel>
               <FieldContent>
-                <div className="space-y-3">
+                <div
+                  className={`space-y-3 ${
+                    !(frameSettings.textEnabled ?? false)
+                      ? 'opacity-50 pointer-events-none'
+                      : ''
+                  }`}
+                >
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
@@ -467,9 +487,10 @@ export function FrameControls({
                       onChange={(e) =>
                         updateSetting('contrastAwareText', e.target.checked)
                       }
+                      disabled={!(frameSettings.textEnabled ?? false)}
                       className="size-4 cursor-pointer"
                     />
-                    <span className="text-sm">Auto contrast (white/black)</span>
+                    <span className="text-xs">Auto contrast (white/black)</span>
                   </label>
                   <div
                     className={`flex gap-2 items-center ${frameSettings.contrastAwareText ? 'opacity-40 pointer-events-none' : ''}`}
@@ -480,7 +501,10 @@ export function FrameControls({
                       onChange={(e) =>
                         updateSetting('textColor', e.target.value)
                       }
-                      disabled={frameSettings.contrastAwareText ?? true}
+                      disabled={
+                        (frameSettings.contrastAwareText ?? true) ||
+                        !(frameSettings.textEnabled ?? false)
+                      }
                       className="w-20 h-8 p-1 cursor-pointer"
                     />
                     <Input
@@ -489,7 +513,10 @@ export function FrameControls({
                       onChange={(e) =>
                         updateSetting('textColor', e.target.value)
                       }
-                      disabled={frameSettings.contrastAwareText ?? true}
+                      disabled={
+                        (frameSettings.contrastAwareText ?? true) ||
+                        !(frameSettings.textEnabled ?? false)
+                      }
                       className="flex-1"
                       placeholder="#000000"
                     />

@@ -147,7 +147,7 @@ export const FrameCanvas = forwardRef<HTMLCanvasElement, FrameCanvasProps>(
         const imageY = topPx;
         ctx.drawImage(img, imageX, imageY, imageWidth, imageHeight);
 
-        // Draw x100vi image on bottom border if text is enabled
+        // Draw camera logo image on bottom border if text is enabled
         if (textEnabled ?? false) {
           const logoImg = new Image();
           logoImg.crossOrigin = 'anonymous';

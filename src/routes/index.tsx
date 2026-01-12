@@ -37,7 +37,7 @@ export type FrameSettings = {
   frameColor: string;
   textColor: string;
   contrastAwareText?: boolean; // auto-select white/black text based on background
-  textEnabled?: boolean; // whether to show x100vi image on bottom border
+  textEnabled?: boolean; // whether to show camera logo image on bottom border
   showShotOnText?: boolean; // whether to show "Shot on" text before logo
   showExifData?: boolean; // whether to show EXIF data under the logo
   // Individual side widths (optional, overrides frameWidth when set)
@@ -51,9 +51,19 @@ export type FrameSettings = {
 
 export type Preset = {
   name: string;
-  frameWidth: number; // percentage
+  frameWidth?: number; // percentage (optional if frameWidths is provided)
   frameColor: string;
   textColor: string;
+  contrastAwareText?: boolean;
+  textEnabled?: boolean;
+  showShotOnText?: boolean;
+  showExifData?: boolean;
+  frameWidths?: {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+  };
 };
 
 const DEFAULT_SETTINGS: FrameSettings = {
@@ -69,27 +79,30 @@ const DEFAULT_SETTINGS: FrameSettings = {
 const PRESETS: Preset[] = [
   {
     name: 'Classic White',
-    frameWidth: 8,
+    frameWidth: 4,
     frameColor: '#ffffff',
     textColor: '#000000',
   },
   {
-    name: 'Vintage Brown',
-    frameWidth: 10,
-    frameColor: '#8B6F47',
-    textColor: '#ffffff',
-  },
-  {
     name: 'Black & White',
-    frameWidth: 9,
+    frameWidth: 4,
     frameColor: '#000000',
     textColor: '#ffffff',
   },
   {
-    name: 'Colorful',
-    frameWidth: 7,
-    frameColor: '#FF6B9D',
+    name: 'Black Bottom Info',
+    frameWidths: {
+      top: 2,
+      right: 2,
+      bottom: 12,
+      left: 2,
+    },
+    frameColor: '#000000',
     textColor: '#ffffff',
+    contrastAwareText: true,
+    textEnabled: true,
+    showShotOnText: true,
+    showExifData: true,
   },
 ];
 
@@ -238,7 +251,11 @@ function App() {
   // Handle preset selection
   const handlePresetSelect = (preset: Preset) => {
     setSelectedPreset(preset.name);
-    setFrameSettings(preset);
+    // Merge preset with default settings to ensure all properties are set
+    setFrameSettings({
+      ...DEFAULT_SETTINGS,
+      ...preset,
+    });
   };
 
   // Handle manual settings change - clear preset selection
