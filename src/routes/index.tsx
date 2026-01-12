@@ -196,10 +196,8 @@ function App() {
             className="hidden"
           />
           <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Button variant="outline" size="sm">
-                <Settings className="size-4" />
-              </Button>
+            <DropdownMenuTrigger className="inline-flex items-center justify-center whitespace-nowrap rounded-none border border-border bg-background hover:bg-muted hover:text-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-7 gap-1 px-2.5 text-xs font-medium transition-all disabled:pointer-events-none disabled:opacity-50 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-1 outline-none">
+              <Settings className="size-3.5" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem
