@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { useLocalStorage } from 'usehooks-ts';
 import { FrameCanvas } from '@/components/FrameCanvas';
 import { FrameControls } from '@/components/FrameControls';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import {
+  saveImageToStorage,
+  loadImageFromStorage,
+  clearImageFromStorage,
+} from '@/lib/storage';
 
 export type FrameSettings = {
   frameWidth: number; // percentage of image size (0-100)
@@ -95,23 +101,63 @@ type ExifData = {
 function App() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [frameSettings, setFrameSettings] =
-    useState<FrameSettings>(DEFAULT_SETTINGS);
-  const [selectedPreset, setSelectedPreset] = useState<string>('');
+  const [frameSettings, setFrameSettings] = useLocalStorage<FrameSettings>(
+    'frame-studio-settings',
+    DEFAULT_SETTINGS
+  );
+  const [selectedPreset, setSelectedPreset] = useLocalStorage<string>(
+    'frame-studio-preset',
+    ''
+  );
   const [canvasBackground, setCanvasBackground] =
-    useState<CanvasBackground>('grey');
+    useLocalStorage<CanvasBackground>('frame-studio-background', 'grey');
   const [exifData, setExifData] = useState<ExifData | null>(null);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // Handle image upload
-  const handleImageUpload = (file: File) => {
-    setImageFile(file);
-    const url = URL.createObjectURL(file);
-    setImageUrl(url);
-    // Extract EXIF data
-    extractExifData(file);
-  };
+  const handleImageUpload = useCallback(
+    async (file: File) => {
+      setImageFile(file);
+      const url = URL.createObjectURL(file);
+      setImageUrl(url);
+      // Extract EXIF data
+      extractExifData(file);
+      // Save to IndexedDB for persistence
+      try {
+        await saveImageToStorage(file, file.name);
+      } catch (error) {
+        console.error('Failed to save image to storage:', error);
+      }
+    },
+    [setImageFile, setImageUrl]
+  );
+
+  // Load stored image on mount
+  useEffect(() => {
+    const loadStoredImage = async () => {
+      try {
+        const storedImage = await loadImageFromStorage();
+        if (storedImage) {
+          // Create a File object from the blob
+          const file = new File([storedImage.blob], storedImage.fileName, {
+            type: storedImage.blob.type,
+          });
+          setImageFile(file);
+          const url = URL.createObjectURL(storedImage.blob);
+          setImageUrl(url);
+          // Extract EXIF data from restored image
+          extractExifData(file);
+        }
+      } catch (error) {
+        console.error('Failed to load stored image:', error);
+        // Clear invalid stored data
+        await clearImageFromStorage();
+      }
+    };
+
+    loadStoredImage();
+  }, []);
 
   // Extract EXIF data from image file
   const extractExifData = async (file: File) => {
@@ -156,10 +202,19 @@ function App() {
   };
 
   // Handle reset to default settings
-  const handleReset = () => {
+  const handleReset = async (clearImage: boolean = false) => {
     setFrameSettings(DEFAULT_SETTINGS);
     setCanvasBackground('grey');
     setSelectedPreset('');
+    if (clearImage) {
+      setImageFile(null);
+      if (imageUrl) {
+        URL.revokeObjectURL(imageUrl);
+      }
+      setImageUrl(null);
+      setExifData(null);
+      await clearImageFromStorage();
+    }
     setResetDialogOpen(false);
   };
 
@@ -192,10 +247,10 @@ function App() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && file.type.startsWith('image/')) {
-      handleImageUpload(file);
+      await handleImageUpload(file);
     }
   };
 
@@ -267,10 +322,16 @@ function App() {
                   undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
-              <AlertDialogFooter>
+              <AlertDialogFooter className="flex-col sm:flex-row">
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleReset}>
-                  Reset
+                <AlertDialogAction onClick={() => handleReset(false)}>
+                  Settings Only
+                </AlertDialogAction>
+                <AlertDialogAction
+                  onClick={() => handleReset(true)}
+                  variant="destructive"
+                >
+                  Clear All
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

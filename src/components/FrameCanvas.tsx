@@ -10,10 +10,17 @@ export const FrameCanvas = forwardRef<HTMLCanvasElement, FrameCanvasProps>(
   ({ imageUrl, frameSettings }, ref) => {
     useEffect(() => {
       const canvas = (ref as React.RefObject<HTMLCanvasElement>)?.current;
-      if (!canvas || !imageUrl) return;
+      if (!canvas) return;
 
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
+
+      // Clear canvas when no image
+      if (!imageUrl) {
+        canvas.width = 0;
+        canvas.height = 0;
+        return;
+      }
 
       const img = new Image();
       img.crossOrigin = 'anonymous';
