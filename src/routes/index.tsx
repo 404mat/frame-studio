@@ -31,6 +31,7 @@ import {
   loadImageFromStorage,
   clearImageFromStorage,
 } from '@/lib/storage';
+import { formatDecimal } from '@/lib/utils';
 
 export type FrameSettings = {
   frameWidth: number; // percentage of image size (0-100)
@@ -469,7 +470,7 @@ function App() {
 function ExifCard({ exifData }: { exifData: ExifData | null }) {
   const formatFocalLength = (focalLength?: number) => {
     if (!focalLength) return '--';
-    return `${focalLength}mm`;
+    return `${formatDecimal(focalLength)}mm`;
   };
 
   const formatShutterSpeed = (shutterSpeed?: number) => {
@@ -482,7 +483,7 @@ function ExifCard({ exifData }: { exifData: ExifData | null }) {
 
   const formatAperture = (aperture?: number) => {
     if (!aperture) return '--';
-    return `f/${aperture}`;
+    return `f/${formatDecimal(aperture)}`;
   };
 
   const formatISO = (iso?: number) => {

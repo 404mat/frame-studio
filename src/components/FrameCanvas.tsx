@@ -1,6 +1,7 @@
 import { forwardRef, useEffect } from 'react';
 import { FrameSettings, ExifData } from '@/routes/index';
 import { getCameraLogoPath, isDarkBackground } from '@/lib/cameraLogos';
+import { formatDecimal } from '@/lib/utils';
 
 interface FrameCanvasProps {
   imageUrl: string | null;
@@ -11,7 +12,7 @@ interface FrameCanvasProps {
 // Helper functions to format EXIF data
 const formatFocalLength = (focalLength?: number) => {
   if (!focalLength) return null;
-  return `${focalLength}mm`;
+  return `${formatDecimal(focalLength)}mm`;
 };
 
 const formatShutterSpeed = (shutterSpeed?: number) => {
@@ -24,7 +25,7 @@ const formatShutterSpeed = (shutterSpeed?: number) => {
 
 const formatAperture = (aperture?: number) => {
   if (!aperture) return null;
-  return `f/${aperture}`;
+  return `f/${formatDecimal(aperture)}`;
 };
 
 const formatISO = (iso?: number) => {
