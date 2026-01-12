@@ -1,5 +1,6 @@
 import { forwardRef, useEffect } from 'react';
 import { FrameSettings, ExifData } from '@/routes/index';
+import { getCameraLogoPath, isDarkBackground } from '@/lib/cameraLogos';
 
 interface FrameCanvasProps {
   imageUrl: string | null;
@@ -149,94 +150,105 @@ export const FrameCanvas = forwardRef<HTMLCanvasElement, FrameCanvasProps>(
 
         // Draw camera logo image on bottom border if text is enabled
         if (textEnabled ?? false) {
-          const logoImg = new Image();
-          logoImg.crossOrigin = 'anonymous';
-          logoImg.onload = () => {
-            // Redraw everything to ensure the logo appears correctly
-            // Clear canvas
-            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+          // Get the appropriate logo path based on EXIF data
+          const darkBg = isDarkBackground(frameColor);
+          const logoPath = getCameraLogoPath(
+            exifData?.make,
+            exifData?.model,
+            darkBg
+          );
 
-            // Draw frame background (all sides)
-            ctx.fillStyle = frameColor;
-            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+          // Only proceed if we have a logo to show
+          if (logoPath) {
+            const logoImg = new Image();
+            logoImg.crossOrigin = 'anonymous';
+            logoImg.onload = () => {
+              // Redraw everything to ensure the logo appears correctly
+              // Clear canvas
+              ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-            // Draw image in center (accounting for individual frame widths)
-            ctx.drawImage(img, imageX, imageY, imageWidth, imageHeight);
+              // Draw frame background (all sides)
+              ctx.fillStyle = frameColor;
+              ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-            // Calculate logo size - use ~22% of bottom border height for main row
-            const logoHeight = bottomPx * 0.22;
-            const logoAspectRatio = logoImg.width / logoImg.height;
-            const logoWidth = logoHeight * logoAspectRatio;
+              // Draw image in center (accounting for individual frame widths)
+              ctx.drawImage(img, imageX, imageY, imageWidth, imageHeight);
 
-            // Set up text styling for "Shot on" text
-            // Use ~1.3x multiplier to make text cap-height match logo height
-            const shotOnTextSize = logoHeight * 1.3;
-            ctx.font = `300 ${shotOnTextSize}px sans-serif`;
-            ctx.fillStyle = effectiveTextColor;
-            ctx.textBaseline = 'alphabetic';
-            ctx.textAlign = 'left';
+              // Calculate logo size - use ~22% of bottom border height for main row
+              const logoHeight = bottomPx * 0.22;
+              const logoAspectRatio = logoImg.width / logoImg.height;
+              const logoWidth = logoHeight * logoAspectRatio;
 
-            // Calculate spacing between elements
-            const spacing = logoHeight * 0.4;
-
-            let totalWidth = 0;
-            let textWidth = 0;
-
-            if (showShotOnText ?? false) {
-              // Measure "Shot on" text width
-              textWidth = ctx.measureText('Shot on').width;
-              totalWidth = textWidth + spacing + logoWidth;
-            } else {
-              totalWidth = logoWidth;
-            }
-
-            // Calculate starting X position to center the group
-            const groupStartX = (canvasWidth - totalWidth) / 2;
-
-            // Position near the top of the bottom border with padding
-            // Use 15% from top as the starting point for the main row
-            const bottomBorderTop = canvasHeight - bottomPx;
-            const mainRowTopY = bottomBorderTop + bottomPx * 0.15;
-
-            // Calculate baseline for text to align with logo bottom
-            const mainRowBottomY = mainRowTopY + logoHeight;
-
-            // Draw "Shot on" text if enabled
-            if (showShotOnText ?? false) {
+              // Set up text styling for "Shot on" text
+              // Use ~1.3x multiplier to make text cap-height match logo height
+              const shotOnTextSize = logoHeight * 1.3;
+              ctx.font = `300 ${shotOnTextSize}px sans-serif`;
               ctx.fillStyle = effectiveTextColor;
-              ctx.fillText('Shot on', groupStartX, mainRowBottomY);
-            }
+              ctx.textBaseline = 'alphabetic';
+              ctx.textAlign = 'left';
 
-            // Calculate logo position
-            const logoX = showShotOnText
-              ? groupStartX + textWidth + spacing
-              : (canvasWidth - logoWidth) / 2;
-            const logoY = mainRowTopY;
+              // Calculate spacing between elements
+              const spacing = logoHeight * 0.4;
 
-            // Draw the logo
-            ctx.drawImage(logoImg, logoX, logoY, logoWidth, logoHeight);
+              let totalWidth = 0;
+              let textWidth = 0;
 
-            // Draw EXIF data if enabled (as second row below main content)
-            if (showExifData ?? false) {
-              const exifString = formatExifString(exifData);
-              if (exifString) {
-                // EXIF text is about 80% of logo height
-                const exifTextSize = logoHeight * 0.8;
-                ctx.font = `300 ${exifTextSize}px sans-serif`;
-                ctx.fillStyle = effectiveTextColor;
-                ctx.textBaseline = 'top';
-                ctx.textAlign = 'center';
-
-                // Position EXIF text below the main row with some spacing
-                const exifRowSpacing = logoHeight * 0.3;
-                const exifY = mainRowBottomY + exifRowSpacing;
-                const exifX = canvasWidth / 2;
-
-                ctx.fillText(exifString, exifX, exifY);
+              if (showShotOnText ?? false) {
+                // Measure "Shot on" text width
+                textWidth = ctx.measureText('Shot on').width;
+                totalWidth = textWidth + spacing + logoWidth;
+              } else {
+                totalWidth = logoWidth;
               }
-            }
-          };
-          logoImg.src = '/logos/fujifilm/x100vi.webp';
+
+              // Calculate starting X position to center the group
+              const groupStartX = (canvasWidth - totalWidth) / 2;
+
+              // Position near the top of the bottom border with padding
+              // Use 15% from top as the starting point for the main row
+              const bottomBorderTop = canvasHeight - bottomPx;
+              const mainRowTopY = bottomBorderTop + bottomPx * 0.15;
+
+              // Calculate baseline for text to align with logo bottom
+              const mainRowBottomY = mainRowTopY + logoHeight;
+
+              // Draw "Shot on" text if enabled
+              if (showShotOnText ?? false) {
+                ctx.fillStyle = effectiveTextColor;
+                ctx.fillText('Shot on', groupStartX, mainRowBottomY);
+              }
+
+              // Calculate logo position
+              const logoX = showShotOnText
+                ? groupStartX + textWidth + spacing
+                : (canvasWidth - logoWidth) / 2;
+              const logoY = mainRowTopY;
+
+              // Draw the logo
+              ctx.drawImage(logoImg, logoX, logoY, logoWidth, logoHeight);
+
+              // Draw EXIF data if enabled (as second row below main content)
+              if (showExifData ?? false) {
+                const exifString = formatExifString(exifData);
+                if (exifString) {
+                  // EXIF text is about 80% of logo height
+                  const exifTextSize = logoHeight * 0.8;
+                  ctx.font = `300 ${exifTextSize}px sans-serif`;
+                  ctx.fillStyle = effectiveTextColor;
+                  ctx.textBaseline = 'top';
+                  ctx.textAlign = 'center';
+
+                  // Position EXIF text below the main row with some spacing
+                  const exifRowSpacing = logoHeight * 0.3;
+                  const exifY = mainRowBottomY + exifRowSpacing;
+                  const exifX = canvasWidth / 2;
+
+                  ctx.fillText(exifString, exifX, exifY);
+                }
+              }
+            };
+            logoImg.src = logoPath;
+          }
         }
       };
 
