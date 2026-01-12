@@ -24,6 +24,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Spinner } from '@/components/ui/spinner';
 import {
   saveImageToStorage,
   loadImageFromStorage,
@@ -102,6 +104,25 @@ export type ExifData = {
   aperture?: number;
 };
 
+// Quirky loading phrases for export dialog
+const LOADING_PHRASES = [
+  'Developing your masterpiece...',
+  'Adding that vintage charm...',
+  'Framing memories, one pixel at a time...',
+  'Channeling your inner photographer...',
+  'Making it look like it was shot on film...',
+  'Polishing those polaroid vibes...',
+  'Capturing the moment, literally...',
+  'Adding that analog magic...',
+  'Framing perfection...',
+  'Making memories tangible...',
+  'Preserving this moment forever...',
+  'Adding the perfect border...',
+  'Creating art from pixels...',
+  'Making it Instagram-worthy...',
+  'Framing your story...',
+];
+
 function App() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -117,7 +138,28 @@ function App() {
     useLocalStorage<CanvasBackground>('frame-studio-background', 'grey');
   const [exifData, setExifData] = useState<ExifData | null>(null);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
+  const [loadingPhrase, setLoadingPhrase] = useState('');
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Rotate loading phrases at intervals
+  useEffect(() => {
+    if (!exportLoading) return;
+
+    // Set initial phrase
+    setLoadingPhrase(
+      LOADING_PHRASES[Math.floor(Math.random() * LOADING_PHRASES.length)]
+    );
+
+    // Change phrase every 2 seconds
+    const interval = setInterval(() => {
+      setLoadingPhrase(
+        LOADING_PHRASES[Math.floor(Math.random() * LOADING_PHRASES.length)]
+      );
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [exportLoading]);
 
   // Handle image upload
   const handleImageUpload = useCallback(
@@ -233,20 +275,40 @@ function App() {
 
   const handleExport = () => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || !imageFile) return;
 
-    canvas.toBlob((blob) => {
-      if (!blob) return;
+    // Extract original filename and add "framed" suffix
+    const originalName = imageFile.name;
+    const nameWithoutExt = originalName.replace(/\.[^/.]+$/, '');
+    const exportFilename = `${nameWithoutExt}-framed.jpg`;
 
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `polaroid-frame-${Date.now()}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    }, 'image/png');
+    // Show loading dialog
+    setExportLoading(true);
+
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          setExportLoading(false);
+          return;
+        }
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = exportFilename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        // Hide loading dialog after a short delay to ensure download starts
+        setTimeout(() => {
+          setExportLoading(false);
+        }, 500);
+      },
+      'image/jpeg',
+      0.92
+    ); // Use JPEG with 92% quality for better file size
   };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -368,6 +430,20 @@ function App() {
           />
         </div>
       </div>
+
+      {/* Export Loading Dialog */}
+      <Dialog open={exportLoading} onOpenChange={() => {}}>
+        <DialogContent showCloseButton={false} className="sm:max-w-md">
+          <div className="flex flex-col items-center justify-center gap-6 py-8">
+            {/* Spinner */}
+            <Spinner className="size-12 text-primary" />
+            {/* Loading Phrase */}
+            <p className="text-center text-sm text-muted-foreground min-h-6">
+              {loadingPhrase}
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
