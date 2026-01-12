@@ -149,7 +149,7 @@ export const FrameCanvas = forwardRef<HTMLCanvasElement, FrameCanvasProps>(
         const imageY = topPx;
         ctx.drawImage(img, imageX, imageY, imageWidth, imageHeight);
 
-        // Draw camera logo image on bottom border if text is enabled
+        // Draw camera logo and/or EXIF data on bottom border if text is enabled
         if (textEnabled ?? false) {
           // Get the appropriate logo path based on EXIF data
           const darkBg = isDarkBackground(frameColor);
@@ -159,7 +159,31 @@ export const FrameCanvas = forwardRef<HTMLCanvasElement, FrameCanvasProps>(
             darkBg
           );
 
-          // Only proceed if we have a logo to show
+          // Helper function to draw EXIF-only content (no logo)
+          const drawExifOnly = () => {
+            if (!(showExifData ?? false)) return;
+
+            const exifString = formatExifString(exifData);
+            if (!exifString) return;
+
+            // Use a reference height based on bottom border
+            const referenceHeight = bottomPx * 0.22;
+            const exifTextSize = referenceHeight * 1.0;
+
+            ctx.font = `300 ${exifTextSize}px sans-serif`;
+            ctx.fillStyle = effectiveTextColor;
+            ctx.textBaseline = 'middle';
+            ctx.textAlign = 'center';
+
+            // Center EXIF text vertically in the bottom border
+            const bottomBorderTop = canvasHeight - bottomPx;
+            const exifY = bottomBorderTop + bottomPx / 2;
+            const exifX = canvasWidth / 2;
+
+            ctx.fillText(exifString, exifX, exifY);
+          };
+
+          // If we have a logo, load and draw it
           if (logoPath) {
             const logoImg = new Image();
             logoImg.crossOrigin = 'anonymous';
@@ -249,6 +273,9 @@ export const FrameCanvas = forwardRef<HTMLCanvasElement, FrameCanvasProps>(
               }
             };
             logoImg.src = logoPath;
+          } else {
+            // No logo found - just draw EXIF data if enabled
+            drawExifOnly();
           }
         }
       };
