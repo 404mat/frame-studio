@@ -23,6 +23,7 @@
     "@tanstack/router-plugin": "^1.132.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "exifr": "^7.1.3",
     "lucide-react": "^0.562.0",
     "nitro": "latest",
     "react": "^19.2.0",
