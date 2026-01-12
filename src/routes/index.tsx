@@ -18,6 +18,7 @@ export type FrameSettings = {
   frameColor: string;
   bottomText: string;
   textColor: string;
+  textEnabled?: boolean; // whether to show x100vi image on bottom border
   // Individual side widths (optional, overrides frameWidth when set)
   frameWidths?: {
     top: number;
@@ -40,6 +41,7 @@ const DEFAULT_SETTINGS: FrameSettings = {
   frameColor: '#ffffff',
   bottomText: '',
   textColor: '#000000',
+  textEnabled: false,
 };
 
 const PRESETS: Preset[] = [
@@ -291,7 +293,7 @@ function ExifCard({ exifData }: { exifData: ExifData }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Camera Info</CardTitle>
+        <CardTitle>Image Info</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-3 text-sm">

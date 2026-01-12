@@ -1,31 +1,31 @@
-import { useState, useEffect } from 'react'
-import { Input } from '@/components/ui/input'
+import { useState, useEffect } from 'react';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from '@/components/ui/select';
 import {
   Field,
   FieldContent,
   FieldGroup,
   FieldLabel,
   FieldTitle,
-} from '@/components/ui/field'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Slider } from '@/components/ui/slider'
-import { Button } from '@/components/ui/button'
-import { FrameSettings, Preset } from '@/routes/index'
-import { Maximize2 } from 'lucide-react'
+} from '@/components/ui/field';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Slider } from '@/components/ui/slider';
+import { Button } from '@/components/ui/button';
+import { FrameSettings, Preset } from '@/routes/index';
+import { Maximize2 } from 'lucide-react';
 
 interface FrameControlsProps {
-  frameSettings: FrameSettings
-  onFrameSettingsChange: (settings: FrameSettings) => void
-  presets: Preset[]
-  onPresetSelect: (preset: Preset) => void
-  selectedPreset: string
+  frameSettings: FrameSettings;
+  onFrameSettingsChange: (settings: FrameSettings) => void;
+  presets: Preset[];
+  onPresetSelect: (preset: Preset) => void;
+  selectedPreset: string;
 }
 
 export function FrameControls({
@@ -35,45 +35,47 @@ export function FrameControls({
   onPresetSelect,
   selectedPreset,
 }: FrameControlsProps) {
-  const [sliderValue, setSliderValue] = useState<number[]>([frameSettings.frameWidth])
+  const [sliderValue, setSliderValue] = useState<number[]>([
+    frameSettings.frameWidth,
+  ]);
   const [useIndividualSides, setUseIndividualSides] = useState<boolean>(
     !!frameSettings.frameWidths
-  )
+  );
   const [individualValues, setIndividualValues] = useState<{
-    top: number
-    right: number
-    bottom: number
-    left: number
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
   }>(() => {
     if (frameSettings.frameWidths) {
-      return frameSettings.frameWidths
+      return frameSettings.frameWidths;
     }
-    const currentWidth = frameSettings.frameWidth
+    const currentWidth = frameSettings.frameWidth;
     return {
       top: currentWidth,
       right: currentWidth,
       bottom: currentWidth,
       left: currentWidth,
-    }
-  })
+    };
+  });
 
   // Sync slider value when frameSettings changes (e.g., from preset)
   useEffect(() => {
     if (frameSettings.frameWidths) {
-      setIndividualValues(frameSettings.frameWidths)
-      setUseIndividualSides(true)
+      setIndividualValues(frameSettings.frameWidths);
+      setUseIndividualSides(true);
     } else {
-      setSliderValue([frameSettings.frameWidth])
-      setUseIndividualSides(false)
-      const currentWidth = frameSettings.frameWidth
+      setSliderValue([frameSettings.frameWidth]);
+      setUseIndividualSides(false);
+      const currentWidth = frameSettings.frameWidth;
       setIndividualValues({
         top: currentWidth,
         right: currentWidth,
         bottom: currentWidth,
         left: currentWidth,
-      })
+      });
     }
-  }, [frameSettings.frameWidth, frameSettings.frameWidths])
+  }, [frameSettings.frameWidth, frameSettings.frameWidths]);
 
   const updateSetting = <K extends keyof FrameSettings>(
     key: K,
@@ -82,16 +84,16 @@ export function FrameControls({
     onFrameSettingsChange({
       ...frameSettings,
       [key]: value,
-    })
-  }
+    });
+  };
 
   const handlePresetChange = (presetName: string | null) => {
-    if (!presetName) return
-    const preset = presets.find((p) => p.name === presetName)
+    if (!presetName) return;
+    const preset = presets.find((p) => p.name === presetName);
     if (preset) {
-      onPresetSelect(preset)
+      onPresetSelect(preset);
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -141,19 +143,19 @@ export function FrameControls({
                   variant="ghost"
                   size="icon-xs"
                   onClick={() => {
-                    const newUseIndividual = !useIndividualSides
-                    setUseIndividualSides(newUseIndividual)
+                    const newUseIndividual = !useIndividualSides;
+                    setUseIndividualSides(newUseIndividual);
                     if (newUseIndividual) {
                       // Switch to individual mode - use current frameWidth for all sides
-                      const currentWidth = frameSettings.frameWidth
+                      const currentWidth = frameSettings.frameWidth;
                       const newValues = {
                         top: currentWidth,
                         right: currentWidth,
                         bottom: currentWidth,
                         left: currentWidth,
-                      }
-                      setIndividualValues(newValues)
-                      updateSetting('frameWidths', newValues)
+                      };
+                      setIndividualValues(newValues);
+                      updateSetting('frameWidths', newValues);
                     } else {
                       // Switch to uniform mode - use average of individual values
                       const avgWidth = Math.round(
@@ -162,14 +164,14 @@ export function FrameControls({
                           individualValues.bottom +
                           individualValues.left) /
                           4
-                      )
-                      setSliderValue([avgWidth])
+                      );
+                      setSliderValue([avgWidth]);
                       // Remove frameWidths property when switching to uniform mode
-                      const { frameWidths: _, ...rest } = frameSettings
+                      const { frameWidths: _, ...rest } = frameSettings;
                       onFrameSettingsChange({
                         ...rest,
                         frameWidth: avgWidth,
-                      })
+                      });
                     }
                   }}
                   title={
@@ -189,15 +191,17 @@ export function FrameControls({
                         value={sliderValue}
                         onValueChange={(value) => {
                           // base-ui passes array directly when value is array
-                          const newValues = Array.isArray(value) ? value : [value]
-                          const roundedValue = Math.round(newValues[0] ?? 0)
-                          setSliderValue([roundedValue])
+                          const newValues = Array.isArray(value)
+                            ? value
+                            : [value];
+                          const roundedValue = Math.round(newValues[0] ?? 0);
+                          setSliderValue([roundedValue]);
                           // Remove frameWidths property when updating uniform width
-                          const { frameWidths: _, ...rest } = frameSettings
+                          const { frameWidths: _, ...rest } = frameSettings;
                           onFrameSettingsChange({
                             ...rest,
                             frameWidth: roundedValue,
-                          })
+                          });
                         }}
                         min={0}
                         max={50}
@@ -214,7 +218,9 @@ export function FrameControls({
                     {/* Top */}
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">Top</span>
+                        <span className="text-xs text-muted-foreground">
+                          Top
+                        </span>
                         <span className="text-xs text-muted-foreground">
                           {Math.round(individualValues.top)}%
                         </span>
@@ -223,11 +229,14 @@ export function FrameControls({
                         value={[individualValues.top]}
                         onValueChange={(value) => {
                           const newValue = Math.round(
-                            Array.isArray(value) ? value[0] ?? 0 : value
-                          )
-                          const newValues = { ...individualValues, top: newValue }
-                          setIndividualValues(newValues)
-                          updateSetting('frameWidths', newValues)
+                            Array.isArray(value) ? (value[0] ?? 0) : value
+                          );
+                          const newValues = {
+                            ...individualValues,
+                            top: newValue,
+                          };
+                          setIndividualValues(newValues);
+                          updateSetting('frameWidths', newValues);
                         }}
                         min={0}
                         max={50}
@@ -237,7 +246,9 @@ export function FrameControls({
                     {/* Right */}
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">Right</span>
+                        <span className="text-xs text-muted-foreground">
+                          Right
+                        </span>
                         <span className="text-xs text-muted-foreground">
                           {Math.round(individualValues.right)}%
                         </span>
@@ -246,11 +257,14 @@ export function FrameControls({
                         value={[individualValues.right]}
                         onValueChange={(value) => {
                           const newValue = Math.round(
-                            Array.isArray(value) ? value[0] ?? 0 : value
-                          )
-                          const newValues = { ...individualValues, right: newValue }
-                          setIndividualValues(newValues)
-                          updateSetting('frameWidths', newValues)
+                            Array.isArray(value) ? (value[0] ?? 0) : value
+                          );
+                          const newValues = {
+                            ...individualValues,
+                            right: newValue,
+                          };
+                          setIndividualValues(newValues);
+                          updateSetting('frameWidths', newValues);
                         }}
                         min={0}
                         max={50}
@@ -260,7 +274,9 @@ export function FrameControls({
                     {/* Bottom */}
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">Bottom</span>
+                        <span className="text-xs text-muted-foreground">
+                          Bottom
+                        </span>
                         <span className="text-xs text-muted-foreground">
                           {Math.round(individualValues.bottom)}%
                         </span>
@@ -269,11 +285,14 @@ export function FrameControls({
                         value={[individualValues.bottom]}
                         onValueChange={(value) => {
                           const newValue = Math.round(
-                            Array.isArray(value) ? value[0] ?? 0 : value
-                          )
-                          const newValues = { ...individualValues, bottom: newValue }
-                          setIndividualValues(newValues)
-                          updateSetting('frameWidths', newValues)
+                            Array.isArray(value) ? (value[0] ?? 0) : value
+                          );
+                          const newValues = {
+                            ...individualValues,
+                            bottom: newValue,
+                          };
+                          setIndividualValues(newValues);
+                          updateSetting('frameWidths', newValues);
                         }}
                         min={0}
                         max={50}
@@ -283,7 +302,9 @@ export function FrameControls({
                     {/* Left */}
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">Left</span>
+                        <span className="text-xs text-muted-foreground">
+                          Left
+                        </span>
                         <span className="text-xs text-muted-foreground">
                           {Math.round(individualValues.left)}%
                         </span>
@@ -292,11 +313,14 @@ export function FrameControls({
                         value={[individualValues.left]}
                         onValueChange={(value) => {
                           const newValue = Math.round(
-                            Array.isArray(value) ? value[0] ?? 0 : value
-                          )
-                          const newValues = { ...individualValues, left: newValue }
-                          setIndividualValues(newValues)
-                          updateSetting('frameWidths', newValues)
+                            Array.isArray(value) ? (value[0] ?? 0) : value
+                          );
+                          const newValues = {
+                            ...individualValues,
+                            left: newValue,
+                          };
+                          setIndividualValues(newValues);
+                          updateSetting('frameWidths', newValues);
                         }}
                         min={0}
                         max={50}
@@ -318,7 +342,11 @@ export function FrameControls({
                   <div className="flex gap-2">
                     <Button
                       type="button"
-                      variant={frameSettings.frameColor === '#000000' ? 'default' : 'outline'}
+                      variant={
+                        frameSettings.frameColor === '#000000'
+                          ? 'default'
+                          : 'outline'
+                      }
                       size="sm"
                       onClick={() => updateSetting('frameColor', '#000000')}
                       className="flex-1"
@@ -327,7 +355,11 @@ export function FrameControls({
                     </Button>
                     <Button
                       type="button"
-                      variant={frameSettings.frameColor === '#ffffff' ? 'default' : 'outline'}
+                      variant={
+                        frameSettings.frameColor === '#ffffff'
+                          ? 'default'
+                          : 'outline'
+                      }
                       size="sm"
                       onClick={() => updateSetting('frameColor', '#ffffff')}
                       className="flex-1"
@@ -336,7 +368,11 @@ export function FrameControls({
                     </Button>
                     <Button
                       type="button"
-                      variant={frameSettings.frameColor === '#808080' ? 'default' : 'outline'}
+                      variant={
+                        frameSettings.frameColor === '#808080'
+                          ? 'default'
+                          : 'outline'
+                      }
                       size="sm"
                       onClick={() => updateSetting('frameColor', '#808080')}
                       className="flex-1"
@@ -348,13 +384,17 @@ export function FrameControls({
                     <Input
                       type="color"
                       value={frameSettings.frameColor}
-                      onChange={(e) => updateSetting('frameColor', e.target.value)}
+                      onChange={(e) =>
+                        updateSetting('frameColor', e.target.value)
+                      }
                       className="w-20 h-8 p-1 cursor-pointer"
                     />
                     <Input
                       type="text"
                       value={frameSettings.frameColor}
-                      onChange={(e) => updateSetting('frameColor', e.target.value)}
+                      onChange={(e) =>
+                        updateSetting('frameColor', e.target.value)
+                      }
                       className="flex-1"
                       placeholder="#ffffff"
                     />
@@ -373,48 +413,22 @@ export function FrameControls({
         </CardHeader>
         <CardContent>
           <FieldGroup>
-            {/* Bottom Text */}
             <Field>
-              <FieldLabel>
-                <FieldTitle>Bottom Text</FieldTitle>
-              </FieldLabel>
-              <FieldContent>
-                <Input
-                  type="text"
-                  value={frameSettings.bottomText}
-                  onChange={(e) => updateSetting('bottomText', e.target.value)}
-                  placeholder="Enter text for bottom border"
+              <FieldLabel className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={frameSettings.textEnabled ?? false}
+                  onChange={(e) =>
+                    updateSetting('textEnabled', e.target.checked)
+                  }
+                  className="size-4 cursor-pointer"
                 />
-              </FieldContent>
-            </Field>
-
-            {/* Text Color */}
-            <Field>
-              <FieldLabel>
-                <FieldTitle>Text Color</FieldTitle>
+                <FieldTitle>Show x100vi image on bottom border</FieldTitle>
               </FieldLabel>
-              <FieldContent>
-                <div className="flex gap-2 items-center">
-                  <Input
-                    type="color"
-                    value={frameSettings.textColor}
-                    onChange={(e) => updateSetting('textColor', e.target.value)}
-                    className="w-20 h-8 p-1 cursor-pointer"
-                  />
-                  <Input
-                    type="text"
-                    value={frameSettings.textColor}
-                    onChange={(e) => updateSetting('textColor', e.target.value)}
-                    className="flex-1"
-                    placeholder="#000000"
-                  />
-                </div>
-              </FieldContent>
             </Field>
           </FieldGroup>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-

@@ -19,8 +19,14 @@ export const FrameCanvas = forwardRef<HTMLCanvasElement, FrameCanvasProps>(
       img.crossOrigin = 'anonymous';
 
       img.onload = () => {
-        const { frameWidth, frameColor, bottomText, textColor, frameWidths } =
-          frameSettings;
+        const {
+          frameWidth,
+          frameColor,
+          bottomText,
+          textColor,
+          frameWidths,
+          textEnabled,
+        } = frameSettings;
 
         // Calculate dimensions
         const imageWidth = img.width;
@@ -84,6 +90,49 @@ export const FrameCanvas = forwardRef<HTMLCanvasElement, FrameCanvasProps>(
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(bottomText, canvasWidth / 2, textY);
+        }
+
+        // Draw x100vi image on bottom border if text is enabled
+        if (textEnabled ?? false) {
+          const logoImg = new Image();
+          logoImg.crossOrigin = 'anonymous';
+          logoImg.onload = () => {
+            // Redraw everything to ensure the logo appears correctly
+            // Clear canvas
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+            // Draw frame background (all sides)
+            ctx.fillStyle = frameColor;
+            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+            // Draw image in center (accounting for individual frame widths)
+            ctx.drawImage(img, imageX, imageY, imageWidth, imageHeight);
+
+            // Draw bottom text if provided
+            if (bottomText) {
+              // Center text vertically in the bottom text area
+              const textY = canvasHeight - textAreaHeight / 2;
+              ctx.fillStyle = textColor;
+              ctx.font = `${textSize}px sans-serif`;
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillText(bottomText, canvasWidth / 2, textY);
+            }
+
+            // Calculate logo size - make it proportional to the bottom border height
+            // Use about 60% of the bottom border height for the logo
+            const logoHeight = bottomPx * 0.6;
+            const logoAspectRatio = logoImg.width / logoImg.height;
+            const logoWidth = logoHeight * logoAspectRatio;
+
+            // Center the logo horizontally on the bottom border
+            const logoX = (canvasWidth - logoWidth) / 2;
+            const logoY = canvasHeight - bottomPx + (bottomPx - logoHeight) / 2;
+
+            // Draw the logo
+            ctx.drawImage(logoImg, logoX, logoY, logoWidth, logoHeight);
+          };
+          logoImg.src = '/logos/fujifilm/x100vi.webp';
         }
       };
 
