@@ -240,7 +240,7 @@ function App() {
         {/* Left Column: Controls */}
         <div className="w-80 border-r overflow-y-auto p-6 space-y-6">
           {/* EXIF Data Card */}
-          {exifData && <ExifCard exifData={exifData} />}
+          <ExifCard exifData={exifData} />
           <FrameControls
             frameSettings={frameSettings}
             onFrameSettingsChange={handleFrameSettingsChange}
@@ -271,14 +271,14 @@ function App() {
 }
 
 // EXIF Data Display Component
-function ExifCard({ exifData }: { exifData: ExifData }) {
+function ExifCard({ exifData }: { exifData: ExifData | null }) {
   const formatFocalLength = (focalLength?: number) => {
-    if (!focalLength) return 'N/A';
+    if (!focalLength) return '--';
     return `${focalLength}mm`;
   };
 
   const formatShutterSpeed = (shutterSpeed?: number) => {
-    if (!shutterSpeed) return 'N/A';
+    if (!shutterSpeed) return '--';
     if (shutterSpeed >= 1) {
       return `${shutterSpeed}s`;
     }
@@ -286,8 +286,13 @@ function ExifCard({ exifData }: { exifData: ExifData }) {
   };
 
   const formatAperture = (aperture?: number) => {
-    if (!aperture) return 'N/A';
+    if (!aperture) return '--';
     return `f/${aperture}`;
+  };
+
+  const formatISO = (iso?: number) => {
+    if (!iso) return '--';
+    return `ISO ${iso}`;
   };
 
   return (
@@ -297,41 +302,35 @@ function ExifCard({ exifData }: { exifData: ExifData }) {
       </CardHeader>
       <CardContent>
         <div className="space-y-3 text-sm">
-          {exifData.make && (
-            <div>
-              <span className="text-muted-foreground">Make:</span>{' '}
-              <span className="font-medium">{exifData.make}</span>
-            </div>
-          )}
-          {exifData.model && (
-            <div>
-              <span className="text-muted-foreground">Model:</span>{' '}
-              <span className="font-medium">{exifData.model}</span>
-            </div>
-          )}
+          <div>
+            <span className="text-muted-foreground">Make:</span>{' '}
+            <span className="font-medium">{exifData?.make || '--'}</span>
+          </div>
+          <div>
+            <span className="text-muted-foreground">Model:</span>{' '}
+            <span className="font-medium">{exifData?.model || '--'}</span>
+          </div>
           <div className="pt-2 border-t space-y-2">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Focal Length:</span>
               <span className="font-medium">
-                {formatFocalLength(exifData.focalLength)}
+                {formatFocalLength(exifData?.focalLength)}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">ISO:</span>
-              <span className="font-medium">
-                {exifData.iso ? `ISO ${exifData.iso}` : 'N/A'}
-              </span>
+              <span className="font-medium">{formatISO(exifData?.iso)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Shutter Speed:</span>
               <span className="font-medium">
-                {formatShutterSpeed(exifData.shutterSpeed)}
+                {formatShutterSpeed(exifData?.shutterSpeed)}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Aperture:</span>
               <span className="font-medium">
-                {formatAperture(exifData.aperture)}
+                {formatAperture(exifData?.aperture)}
               </span>
             </div>
           </div>
