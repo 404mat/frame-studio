@@ -1,0 +1,28 @@
+{
+  "kind": "cloudflare::WorkerSubdomain",
+  "id": "url",
+  "fqn": "frame-studio/mathias/website/url",
+  "seq": 1,
+  "data": {},
+  "status": "updating",
+  "output": {
+    "Symbol(alchemy::ResourceKind)": "cloudflare::WorkerSubdomain",
+    "Symbol(alchemy::ResourceID)": "url",
+    "Symbol(alchemy::ResourceFQN)": "frame-studio/mathias/website/url",
+    "Symbol(alchemy::ResourceScope)": {
+      "@scope": null
+    },
+    "Symbol(alchemy::ResourceSeq)": 1,
+    "url": "https://unavailable.alchemy.run"
+  },
+  "props": {
+    "scriptName": "frame-studio-website-mathias",
+    "retain": false,
+    "dev": false
+  },
+  "oldProps": {
+    "scriptName": "frame-studio-website-mathias",
+    "retain": false,
+    "dev": true
+  }
+}
