@@ -1,5 +1,5 @@
 name = "frame-studio"
 
 [[routes]]
-pattern = "studio.mathias.gg"
+pattern = "studio.mathias.md"
 custom_domain = true
